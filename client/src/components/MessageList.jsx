@@ -1,7 +1,35 @@
 import React, { useEffect, useRef } from 'react';
+import { socket } from '../socket/socket';
+import { useSocket } from '../context/SocketContext';
+
+const ReadReceipt = ({ status }) => {
+  if (status === 'sent') return <span className="read-receipt sent">✓</span>;
+  if (status === 'read') return <span className="read-receipt read">✓✓</span>;
+  return null;
+};
+
+// --- NEW: Component to display reactions ---
+const Reactions = ({ reactions, messageId }) => {
+  const { sendReaction } = useSocket();
+
+  if (!reactions || Object.keys(reactions).length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="reactions-container">
+      {Object.entries(reactions).map(([emoji, users]) => (
+        <div key={emoji} className="reaction" onClick={() => sendReaction(messageId, emoji)}>
+          {emoji} {users.length}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const MessageList = ({ messages }) => {
   const messagesEndRef = useRef(null);
+  const { sendReaction } = useSocket(); // Get sendReaction function
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -14,18 +42,36 @@ const MessageList = ({ messages }) => {
 
   return (
     <main className="message-list">
-      {messages.map((msg, index) => (
-        <div key={index} className={`message ${msg.type} ${msg.isPrivate ? 'private' : ''}`}>
-          {msg.type === 'chat' && (
-            <div className="message-meta">
-              <span className="sender">{msg.sender}</span>
-              <span className="timestamp">{formatTime(msg.timestamp)}</span>
+      {messages.map((msg) => {
+        const isSentByMe = msg.senderId === socket.id;
+
+        if (msg.type === 'system') {
+          return <div key={msg.id} className="message system">{msg.message}</div>;
+        }
+
+        return (
+          <div key={msg.id} className={`message-wrapper ${isSentByMe ? 'sent' : 'received'}`}>
+            <div className={`message ${msg.isPrivate ? 'private' : ''}`}>
+              {!isSentByMe && <div className="message-sender">{msg.sender}</div>}
+              <div className="message-content">
+                {msg.message}
+                <div className="message-meta">
+                  <span className="timestamp">{formatTime(msg.timestamp)}</span>
+                  {isSentByMe && <ReadReceipt status={msg.status} />}
+                </div>
+              </div>
+              
+              <Reactions reactions={msg.reactions} messageId={msg.id} />
             </div>
-          )}
-          {msg.message}
-          {msg.isPrivate && <span className="private-tag">(Private to {msg.recipient})</span>}
-        </div>
-      ))}
+            
+            <div className="reaction-picker">
+              <span onClick={() => sendReaction(msg.id, '👍')}>👍</span>
+              <span onClick={() => sendReaction(msg.id, '❤️')}>❤️</span>
+              <span onClick={() => sendReaction(msg.id, '😂')}>😂</span>
+            </div>
+          </div>
+        );
+      })}
       <div ref={messagesEndRef} />
     </main>
   );

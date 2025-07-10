@@ -3,7 +3,6 @@
 const handleUserJoin = (io, socket, users) => {
   socket.on('user_join', (username) => {
     users[socket.id] = { username, id: socket.id };
-    // By default, join a 'General' room
     socket.join('General');
     socket.currentRoom = 'General';
     io.emit('user_list', Object.values(users));
@@ -15,13 +14,11 @@ const handleUserJoin = (io, socket, users) => {
 const handleRoomJoin = (io, socket, users) => {
   socket.on('join_room', (roomName) => {
     const username = users[socket.id]?.username;
-    if (!username) return; // Add a check for the user
+    if (!username) return;
 
-    // Leave the previous room
     socket.leave(socket.currentRoom);
     socket.to(socket.currentRoom).emit('system_message', `${username} has left the room.`);
     
-    // Join the new room
     socket.join(roomName);
     socket.currentRoom = roomName;
     socket.emit('system_message', `You joined the '${roomName}' chat room.`);
@@ -29,17 +26,60 @@ const handleRoomJoin = (io, socket, users) => {
   });
 };
 
-const handleSendMessage = (io, socket, users) => {
+const handleSendMessage = (io, socket, users, messages) => {
   socket.on('send_message', (message) => {
     if (!socket.currentRoom) return;
 
     const messageData = {
       id: Date.now(),
       sender: users[socket.id]?.username || 'Anonymous',
+      senderId: socket.id,
       message,
+      status: 'sent',
+      reactions: {}, // Initialize reactions
       timestamp: new Date().toISOString(),
     };
+    messages.push(messageData); // Store the message
     io.to(socket.currentRoom).emit('receive_message', messageData);
+  });
+};
+
+// --- NEW: Handles adding/removing reactions ---
+const handleMessageReaction = (io, socket, users, messages) => {
+  socket.on('send_reaction', ({ messageId, reaction }) => {
+    const username = users[socket.id]?.username;
+    const message = messages.find((msg) => msg.id === messageId);
+
+    if (!message || !username) return;
+
+    // If the reaction object doesn't exist, create it
+    if (!message.reactions[reaction]) {
+      message.reactions[reaction] = [];
+    }
+
+    const userIndex = message.reactions[reaction].indexOf(username);
+
+    if (userIndex === -1) {
+      // User hasn't reacted yet, add them
+      message.reactions[reaction].push(username);
+    } else {
+      // User has reacted, remove them
+      message.reactions[reaction].splice(userIndex, 1);
+    }
+    
+    // If a reaction has no users, remove the emoji key
+    if (message.reactions[reaction].length === 0) {
+      delete message.reactions[reaction];
+    }
+
+    // Broadcast the updated message to the room
+    io.to(socket.currentRoom).emit('update_message', message);
+  });
+};
+
+const handleMessageRead = (io, socket) => {
+  socket.on('message_read', ({ messageId, senderId }) => {
+    io.to(senderId).emit('message_status_update', { messageId, status: 'read' });
   });
 };
 
@@ -58,25 +98,27 @@ const handleTyping = (io, socket, users, typingUsers) => {
   });
 };
 
-const handlePrivateMessage = (io, socket, users) => {
+const handlePrivateMessage = (io, socket, users, messages) => {
   socket.on('send_private_message', ({ recipientSocketId, message }) => {
     try {
       const sender = users[socket.id];
       const recipient = users[recipientSocketId];
 
-      if (!sender || !recipient) {
-        console.error('Error: Could not find sender or recipient for private message.');
-        return;
-      }
+      if (!sender || !recipient) return;
 
       const messageData = {
         id: Date.now(),
         sender: sender.username,
+        senderId: socket.id,
         message,
         recipient: recipient.username,
         isPrivate: true,
+        status: 'sent',
+        reactions: {}, // Initialize reactions
         timestamp: new Date().toISOString(),
       };
+      
+      messages.push(messageData); // Store the message
 
       io.to(recipientSocketId).emit('receive_message', messageData);
       socket.emit('receive_message', messageData);
@@ -90,10 +132,8 @@ const handlePrivateMessage = (io, socket, users) => {
 const handleDisconnect = (io, socket, users, typingUsers) => {
   socket.on('disconnect', () => {
     const user = users[socket.id];
-    if (user) {
-      if(socket.currentRoom) {
-        socket.to(socket.currentRoom).emit('system_message', `${user.username} has left the chat.`);
-      }
+    if (user && socket.currentRoom) {
+      socket.to(socket.currentRoom).emit('system_message', `${user.username} has left the chat.`);
     }
     delete users[socket.id];
     delete typingUsers[socket.id];
@@ -106,6 +146,8 @@ module.exports = {
   handleUserJoin,
   handleRoomJoin,
   handleSendMessage,
+  handleMessageRead,
+  handleMessageReaction, // Export new handler
   handleTyping,
   handleDisconnect,
   handlePrivateMessage,
