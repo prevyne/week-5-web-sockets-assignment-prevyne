@@ -103,4 +103,4 @@ Your React application should automatically open in your browser at http://local
 
 
 FRONTEND LINK: https://week-5-web-sockets-assignment-prevy.vercel.app/
-SERVER LINK: 
+SERVER LINK: https://week-5-web-sockets-assignment-prevyne.onrender.com/
