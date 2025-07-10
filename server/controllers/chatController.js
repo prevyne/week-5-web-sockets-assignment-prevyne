@@ -3,27 +3,49 @@
 const handleUserJoin = (io, socket, users) => {
   socket.on('user_join', (username) => {
     users[socket.id] = { username, id: socket.id };
+    // By default, join a 'General' room
+    socket.join('General');
+    socket.currentRoom = 'General';
     io.emit('user_list', Object.values(users));
-    socket.broadcast.emit('system_message', `${username} has joined the chat.`);
-    console.log(`${username} joined.`);
+    socket.emit('system_message', `You joined the 'General' chat room.`);
+    socket.to('General').emit('system_message', `${username} has joined the chat.`);
+  });
+};
+
+const handleRoomJoin = (io, socket, users) => {
+  socket.on('join_room', (roomName) => {
+    const username = users[socket.id]?.username;
+    if (!username) return; // Add a check for the user
+
+    // Leave the previous room
+    socket.leave(socket.currentRoom);
+    socket.to(socket.currentRoom).emit('system_message', `${username} has left the room.`);
+    
+    // Join the new room
+    socket.join(roomName);
+    socket.currentRoom = roomName;
+    socket.emit('system_message', `You joined the '${roomName}' chat room.`);
+    socket.to(roomName).emit('system_message', `${username} has joined the room.`);
   });
 };
 
 const handleSendMessage = (io, socket, users) => {
   socket.on('send_message', (message) => {
-    const senderUsername = users[socket.id]?.username || 'Anonymous';
+    if (!socket.currentRoom) return;
+
     const messageData = {
       id: Date.now(),
-      sender: senderUsername,
+      sender: users[socket.id]?.username || 'Anonymous',
       message,
       timestamp: new Date().toISOString(),
     };
-    io.emit('receive_message', messageData);
+    io.to(socket.currentRoom).emit('receive_message', messageData);
   });
 };
 
 const handleTyping = (io, socket, users, typingUsers) => {
   socket.on('typing', (isTyping) => {
+    if (!socket.currentRoom) return;
     const username = users[socket.id]?.username;
     if (!username) return;
 
@@ -32,7 +54,7 @@ const handleTyping = (io, socket, users, typingUsers) => {
     } else {
       delete typingUsers[socket.id];
     }
-    io.emit('typing_users', Object.values(typingUsers));
+    socket.to(socket.currentRoom).emit('typing_users', Object.values(typingUsers));
   });
 };
 
@@ -69,8 +91,9 @@ const handleDisconnect = (io, socket, users, typingUsers) => {
   socket.on('disconnect', () => {
     const user = users[socket.id];
     if (user) {
-      io.emit('system_message', `${user.username} has left the chat.`);
-      console.log(`${user.username} left.`);
+      if(socket.currentRoom) {
+        socket.to(socket.currentRoom).emit('system_message', `${user.username} has left the chat.`);
+      }
     }
     delete users[socket.id];
     delete typingUsers[socket.id];
@@ -81,6 +104,7 @@ const handleDisconnect = (io, socket, users, typingUsers) => {
 
 module.exports = {
   handleUserJoin,
+  handleRoomJoin,
   handleSendMessage,
   handleTyping,
   handleDisconnect,

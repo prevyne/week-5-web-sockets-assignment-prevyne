@@ -1,9 +1,10 @@
 const {
   handleUserJoin,
+  handleRoomJoin,
   handleSendMessage,
   handleTyping,
   handleDisconnect,
-  handlePrivateMessage, // Import the new handler
+  handlePrivateMessage,
 } = require('../controllers/chatController');
 
 const users = {};
@@ -13,11 +14,11 @@ const configureSocket = (io) => {
   io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    // Pass io, socket, and state to each handler
     handleUserJoin(io, socket, users);
+    handleRoomJoin(io, socket, users);
     handleSendMessage(io, socket, users);
     handleTyping(io, socket, users, typingUsers);
-    handlePrivateMessage(io, socket, users); // Use the new handler
+    handlePrivateMessage(io, socket, users);
     handleDisconnect(io, socket, users, typingUsers);
   });
 };

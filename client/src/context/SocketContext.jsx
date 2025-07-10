@@ -1,3 +1,4 @@
+// client/src/context/SocketContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { socket } from '../socket/socket';
 
@@ -10,14 +11,13 @@ export const SocketProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState([]);
   const [typingUsers, setTypingUsers] = useState([]);
+  const [currentRoom, setCurrentRoom] = useState('General');
 
   useEffect(() => {
     const onConnect = () => setIsConnected(true);
     const onDisconnect = () => setIsConnected(false);
     
     const onReceiveMessage = (msg) => {
-      // For debugging private messages
-      console.log('Message received from server:', msg); 
       setMessages((prev) => [...prev, { ...msg, type: 'chat' }]);
     };
 
@@ -50,9 +50,19 @@ export const SocketProvider = ({ children }) => {
     socket.emit('user_join', username);
   };
   
-  const sendMessage = (message) => socket.emit('send_message', message);
+  const joinRoom = (roomName) => {
+    socket.emit('join_room', roomName);
+    setCurrentRoom(roomName);
+    setMessages([]); // Clear messages when changing rooms
+  };
+
+  const sendMessage = (message) => {
+    socket.emit('send_message', message);
+  };
   
-  const setTyping = (isTyping) => socket.emit('typing', isTyping);
+  const setTyping = (isTyping) => {
+    socket.emit('typing', isTyping);
+  };
 
   const sendPrivateMessage = (recipientSocketId, message) => {
     socket.emit('send_private_message', { recipientSocketId, message });
@@ -63,7 +73,9 @@ export const SocketProvider = ({ children }) => {
     messages, 
     users, 
     typingUsers, 
+    currentRoom,
     connect, 
+    joinRoom,
     sendMessage, 
     setTyping, 
     sendPrivateMessage 
