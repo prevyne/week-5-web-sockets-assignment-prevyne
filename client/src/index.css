@@ -14,6 +14,7 @@ body {
   overflow: hidden;
   align-items: center;
   justify-content: center;
+  background: white;
 }
 
 /* Login Page */
@@ -25,7 +26,7 @@ body {
   gap: 1rem;
 }
 
-.login-container input {
+.login-container input, .login-container button {
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #ddd;
@@ -33,30 +34,46 @@ body {
 }
 
 .login-container button {
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: none;
   background-color: #007bff;
   color: white;
-  font-size: 16px;
+  border: none;
   cursor: pointer;
 }
 
-/* Main Chat Layout */
-.chat-container {
-  display: flex;
-  width: 90vw;
-  height: 90vh;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  border-radius: 8px;
+/* Hamburger and Close Buttons (Mobile Only) */
+.hamburger-menu, .close-sidebar-btn {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1002;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.5em;
+  line-height: 1em;
+  cursor: pointer;
 }
 
+.hamburger-menu {
+  top: 10px;
+  left: 10px;
+}
+
+.close-sidebar-btn {
+  top: 10px;
+  right: 10px;
+}
+
+/* Main Chat Layout */
 .chat-area {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   padding: 1rem;
+  min-width: 0;
+  height: 100%;
 }
 
 .chat-area h2 {
@@ -66,21 +83,27 @@ body {
   font-size: 1.2em;
 }
 
-/* Room and User Lists */
-.room-list, .user-list {
+/* Desktop Sidebars */
+.desktop-sidebar-left, .desktop-sidebar-right {
   width: 220px;
   padding: 1rem;
   overflow-y: auto;
   flex-shrink: 0;
+  height: 100%;
 }
 
-.room-list {
+.desktop-sidebar-left {
   border-right: 1px solid #ddd;
   background-color: #f7f7f7;
 }
 
-.user-list {
+.desktop-sidebar-right {
   border-left: 1px solid #ddd;
+}
+
+/* Room and User Lists (shared styles) */
+.room-list, .user-list {
+  width: 100%;
 }
 
 .room-list h3, .user-list h3 {
@@ -109,10 +132,15 @@ body {
   font-weight: bold;
 }
 
+/* Mobile Sidebar (Overlay) */
+.mobile-sidebar {
+  display: none;
+}
+
 /* Message List and Individual Messages */
 .message-list {
   flex-grow: 1;
-  padding: 0 1rem;
+  padding: 0 0.5rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -120,9 +148,7 @@ body {
 
 .message-wrapper {
   display: flex;
-  align-items: center;
-  margin-bottom: 5px;
-  position: relative; /* Anchor for the reaction picker */
+  margin-bottom: 10px;
 }
 
 .message-wrapper.sent {
@@ -136,8 +162,9 @@ body {
 .message {
   padding: 10px 15px;
   border-radius: 18px;
-  max-width: 70%;
+  max-width: 80%;
   line-height: 1.4;
+  word-wrap: break-word;
 }
 
 .message.sent {
@@ -147,12 +174,6 @@ body {
 
 .message.received {
   background-color: #e4e6eb;
-  color: #050505;
-}
-
-.message.private {
-  background-color: #e6f3ff;
-  border: 1px solid #007bff;
   color: #050505;
 }
 
@@ -166,98 +187,10 @@ body {
   padding: 5px;
 }
 
-.message-sender {
-  font-weight: bold;
-  font-size: 0.8em;
-  margin-bottom: 4px;
-}
-
-.message-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.message-meta {
-  display: flex;
-  align-items: center;
-  align-self: flex-end;
-  margin-top: 5px;
-}
-
-.message.received .message-meta {
-  align-self: flex-start;
-}
-
-.timestamp {
-  font-size: 0.75em;
-  color: #888;
-  margin-right: 5px;
-}
-
-.message.sent .timestamp {
-  color: #e0e0e0;
-}
-
-/* Read Receipts and Reactions */
-.read-receipt {
-  font-size: 1em;
-}
-
-.read-receipt.sent {
-  color: #a0a0a0;
-}
-
-.read-receipt.read {
-  color: #4fc3f7; /* Light blue for "read" */
-}
-
-.reaction-picker {
-  display: none; /* Hidden by default */
-  position: absolute;
-  top: -20px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.2);
-  padding: 5px;
-  z-index: 10; /* This is the critical fix */
-}
-
-.message-wrapper:hover .reaction-picker {
-  display: flex;
-}
-
-.message-wrapper.sent .reaction-picker {
-  right: 50px;
-}
-
-.message-wrapper.received .reaction-picker {
-  left: 50px;
-}
-
-.reaction-picker span {
-  cursor: pointer;
-  padding: 0 5px;
-  font-size: 1.2em;
-}
-
-.reactions-container {
-  display: flex;
-  gap: 5px;
-  margin-top: 5px;
-}
-
-.reaction {
-  background-color: #e9ebee;
-  border-radius: 10px;
-  padding: 2px 8px;
-  font-size: 0.8em;
-  cursor: pointer;
-}
-
 /* Message Input and Typing Indicator */
 .message-input {
   display: flex;
-  padding-top: 1rem;
+  padding: 0.5rem;
   border-top: 1px solid #ddd;
 }
 
@@ -283,4 +216,51 @@ body {
   font-style: italic;
   color: #65676b;
   height: 20px;
+}
+
+/* ======================================= */
+/* ====== Responsive Design Section ====== */
+/* ======================================= */
+
+@media (max-width: 768px) {
+  .app-container {
+    height: 100%;
+    width: 100%;
+    display: block;
+  }
+  
+  .hamburger-menu {
+    display: block;
+  }
+
+  .desktop-sidebar-left, .desktop-sidebar-right {
+    display: none; /* Hide desktop sidebars on mobile */
+  }
+
+  .mobile-sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80%;
+    max-width: 300px;
+    height: 100%;
+    background: #f7f7f7;
+    z-index: 1001;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    padding: 1rem;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  }
+
+  .mobile-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .mobile-sidebar .user-list {
+    border-top: 1px solid #ddd;
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
 }

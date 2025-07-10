@@ -3,8 +3,16 @@ import { useSocket } from '../context/SocketContext';
 
 const rooms = ['General', 'Technology', 'Sports', 'Random'];
 
-const RoomList = () => {
+const RoomList = ({ onRoomSelect }) => {
   const { joinRoom, currentRoom } = useSocket();
+
+  const handleRoomClick = (room) => {
+    joinRoom(room);
+    // If the onRoomSelect function is provided (on mobile), call it.
+    if (onRoomSelect) {
+      onRoomSelect();
+    }
+  };
 
   return (
     <aside className="room-list">
@@ -14,7 +22,7 @@ const RoomList = () => {
           <li
             key={room}
             className={room === currentRoom ? 'active' : ''}
-            onClick={() => joinRoom(room)}
+            onClick={() => handleRoomClick(room)}
           >
             # {room}
           </li>

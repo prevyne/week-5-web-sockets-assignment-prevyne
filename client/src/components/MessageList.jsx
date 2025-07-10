@@ -8,7 +8,6 @@ const ReadReceipt = ({ status }) => {
   return null;
 };
 
-// --- NEW: Component to display reactions ---
 const Reactions = ({ reactions, messageId }) => {
   const { sendReaction } = useSocket();
 
@@ -29,7 +28,7 @@ const Reactions = ({ reactions, messageId }) => {
 
 const MessageList = ({ messages }) => {
   const messagesEndRef = useRef(null);
-  const { sendReaction } = useSocket(); // Get sendReaction function
+  const { sendReaction } = useSocket();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -53,6 +52,7 @@ const MessageList = ({ messages }) => {
           <div key={msg.id} className={`message-wrapper ${isSentByMe ? 'sent' : 'received'}`}>
             <div className={`message ${msg.isPrivate ? 'private' : ''}`}>
               {!isSentByMe && <div className="message-sender">{msg.sender}</div>}
+              
               <div className="message-content">
                 {msg.message}
                 <div className="message-meta">
@@ -60,14 +60,14 @@ const MessageList = ({ messages }) => {
                   {isSentByMe && <ReadReceipt status={msg.status} />}
                 </div>
               </div>
-              
+
               <Reactions reactions={msg.reactions} messageId={msg.id} />
-            </div>
-            
-            <div className="reaction-picker">
-              <span onClick={() => sendReaction(msg.id, '👍')}>👍</span>
-              <span onClick={() => sendReaction(msg.id, '❤️')}>❤️</span>
-              <span onClick={() => sendReaction(msg.id, '😂')}>😂</span>
+              
+              <div className="reaction-buttons">
+                <span onClick={() => sendReaction(msg.id, '👍')}>👍</span>
+                <span onClick={() => sendReaction(msg.id, '❤️')}>❤️</span>
+                <span onClick={() => sendReaction(msg.id, '😂')}>😂</span>
+              </div>
             </div>
           </div>
         );
