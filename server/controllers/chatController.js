@@ -14,6 +14,8 @@ const handleSendMessage = (io, socket, users) => {
       id: Date.now(),
       sender: senderUsername,
       message,
+      // Add this line
+      timestamp: new Date().toISOString(),
     };
     io.emit('receive_message', messageData);
   });
@@ -47,9 +49,33 @@ const handleDisconnect = (io, socket, users, typingUsers) => {
   });
 };
 
+const handlePrivateMessage = (io, socket, users) => {
+  socket.on('send_private_message', ({ recipientSocketId, message }) => {
+    const sender = users[socket.id];
+    const recipient = users[recipientSocketId];
+
+    if (!sender || !recipient) return; // Exit if sender or recipient is not found
+
+    const messageData = {
+      id: Date.now(),
+      sender: sender.username,
+      message,
+      recipient: recipient.username,
+      isPrivate: true,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Send to the recipient
+    io.to(recipientSocketId).emit('receive_message', messageData);
+    // Send back to the sender
+    socket.emit('receive_message', messageData);
+  });
+};
+
 module.exports = {
   handleUserJoin,
   handleSendMessage,
   handleTyping,
   handleDisconnect,
+  handlePrivateMessage,
 };

@@ -46,8 +46,12 @@ export const SocketProvider = ({ children }) => {
   
   const sendMessage = (message) => socket.emit('send_message', message);
   const setTyping = (isTyping) => socket.emit('typing', isTyping);
+  
+  const sendPrivateMessage = (recipientSocketId, message) => {
+    socket.emit('send_private_message', { recipientSocketId, message });
+  };
 
-  const value = { isConnected, messages, users, typingUsers, connect, sendMessage, setTyping };
+  const value = { isConnected, messages, users, typingUsers, connect, sendMessage, setTyping, sendPrivateMessage };
 
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 };

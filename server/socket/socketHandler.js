@@ -3,6 +3,7 @@ const {
   handleSendMessage,
   handleTyping,
   handleDisconnect,
+  handlePrivateMessage, // Import the new handler
 } = require('../controllers/chatController');
 
 const users = {};
@@ -16,6 +17,7 @@ const configureSocket = (io) => {
     handleUserJoin(io, socket, users);
     handleSendMessage(io, socket, users);
     handleTyping(io, socket, users, typingUsers);
+    handlePrivateMessage(io, socket, users); // Use the new handler
     handleDisconnect(io, socket, users, typingUsers);
   });
 };
