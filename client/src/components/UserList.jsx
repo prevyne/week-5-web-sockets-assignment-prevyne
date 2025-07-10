@@ -7,6 +7,9 @@ const UserList = ({ users }) => {
 
   const handleUserClick = (user) => {
     if (user.id === socket.id) return;
+
+    console.log('Sending PM to user:', user);
+
     const message = prompt(`Send a private message to ${user.username}:`);
     if (message) {
       sendPrivateMessage(user.id, message);

@@ -1,4 +1,3 @@
-// client/src/context/SocketContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { socket } from '../socket/socket';
 
@@ -16,8 +15,15 @@ export const SocketProvider = ({ children }) => {
     const onConnect = () => setIsConnected(true);
     const onDisconnect = () => setIsConnected(false);
     
-    const onReceiveMessage = (msg) => setMessages((prev) => [...prev, { ...msg, type: 'chat' }]);
-    const onSystemMessage = (msg) => setMessages((prev) => [...prev, { id: Date.now(), message: msg, type: 'system' }]);
+    const onReceiveMessage = (msg) => {
+      // For debugging private messages
+      console.log('Message received from server:', msg); 
+      setMessages((prev) => [...prev, { ...msg, type: 'chat' }]);
+    };
+
+    const onSystemMessage = (msg) => {
+      setMessages((prev) => [...prev, { id: Date.now(), message: msg, type: 'system' }]);
+    };
 
     const onUserList = (userList) => setUsers(userList);
     const onTyping = (typingList) => setTypingUsers(typingList);
@@ -45,13 +51,23 @@ export const SocketProvider = ({ children }) => {
   };
   
   const sendMessage = (message) => socket.emit('send_message', message);
-  const setTyping = (isTyping) => socket.emit('typing', isTyping);
   
+  const setTyping = (isTyping) => socket.emit('typing', isTyping);
+
   const sendPrivateMessage = (recipientSocketId, message) => {
     socket.emit('send_private_message', { recipientSocketId, message });
   };
 
-  const value = { isConnected, messages, users, typingUsers, connect, sendMessage, setTyping, sendPrivateMessage };
+  const value = { 
+    isConnected, 
+    messages, 
+    users, 
+    typingUsers, 
+    connect, 
+    sendMessage, 
+    setTyping, 
+    sendPrivateMessage 
+  };
 
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 };
