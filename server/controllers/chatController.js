@@ -1,5 +1,3 @@
-// server/controllers/chatController.js
-
 const handleUserJoin = (io, socket, users) => {
   socket.on('user_join', (username) => {
     users[socket.id] = { username, id: socket.id };
@@ -131,9 +129,12 @@ const handlePrivateMessage = (io, socket, users, messages) => {
 
 const handleDisconnect = (io, socket, users, typingUsers) => {
   socket.on('disconnect', () => {
-    const user = users[socket.id];
-    if (user && socket.currentRoom) {
-      socket.to(socket.currentRoom).emit('system_message', `${user.username} has left the chat.`);
+    const user = socket.user; // Get user from token
+    if (user) {
+      if(socket.currentRoom) {
+        socket.to(socket.currentRoom).emit('system_message', `${user.username} has left the chat.`);
+      }
+      console.log(`${user.username} left.`);
     }
     delete users[socket.id];
     delete typingUsers[socket.id];
@@ -143,11 +144,10 @@ const handleDisconnect = (io, socket, users, typingUsers) => {
 };
 
 module.exports = {
-  handleUserJoin,
   handleRoomJoin,
   handleSendMessage,
   handleMessageRead,
-  handleMessageReaction, // Export new handler
+  handleMessageReaction,
   handleTyping,
   handleDisconnect,
   handlePrivateMessage,

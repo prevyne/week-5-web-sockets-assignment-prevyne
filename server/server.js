@@ -3,6 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const authRoutes = require('./routes/authRoutes'); // Import auth routes
 const configureSocket = require('./socket/socketHandler');
 
 dotenv.config();
@@ -18,9 +19,11 @@ const io = new Server(server, {
 });
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Middleware to parse JSON bodies
 
-// Configure socket event handlers
+// Use the auth routes
+app.use('/api/auth', authRoutes);
+
 configureSocket(io);
 
 app.get('/', (req, res) => {

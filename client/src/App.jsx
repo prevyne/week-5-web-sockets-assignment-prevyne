@@ -1,18 +1,20 @@
 import React from 'react';
 import { SocketProvider, useSocket } from './context/SocketContext';
 import ChatPage from './pages/ChatPage';
-import LoginPage from './pages/LoginPage';
-import './index.css'; // Add your styles
+import AuthPage from './pages/AuthPage'; // Import the new AuthPage
+import './index.css';
 
 const AppContent = () => {
-  const { isConnected } = useSocket();
-  return isConnected ? <ChatPage /> : <LoginPage />;
+  const { isAuthenticated } = useSocket();
+  return isAuthenticated ? <ChatPage /> : <AuthPage />;
 };
 
 const App = () => {
   return (
     <SocketProvider>
-      <AppContent />
+      <div className="app-container">
+        <AppContent />
+      </div>
     </SocketProvider>
   );
 };

@@ -8,7 +8,7 @@ import RoomList from '../components/RoomList';
 import HamburgerMenu from '../components/HamburgerMenu';
 
 const ChatPage = () => {
-  const { users, messages, typingUsers, sendMessage, setTyping, currentRoom } = useSocket();
+  const { users, messages, typingUsers, sendMessage, setTyping, currentRoom, logout } = useSocket();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -19,22 +19,22 @@ const ChatPage = () => {
     <>
       <HamburgerMenu onClick={toggleSidebar} />
       
-      {/* This is the main chat view, always visible */}
       <div className="chat-area">
-        <h2>Current Room: {currentRoom}</h2>
+        <div className="chat-header">
+          <h2>Current Room: {currentRoom}</h2>
+          <button onClick={logout} className="logout-btn">Logout</button>
+        </div>
         <MessageList messages={messages} />
         <TypingIndicator typingUsers={typingUsers} />
         <MessageInput onSendMessage={sendMessage} onTyping={setTyping} />
       </div>
 
-      {/* This sidebar will be an overlay on mobile */}
       <div className={`mobile-sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <button onClick={toggleSidebar} className="close-sidebar-btn">&times;</button>
-        <RoomList onRoomSelect={toggleSidebar} /> {/* Pass the function */}
-        <UserList users={users} onUserSelect={toggleSidebar} /> {/* Pass the function */}
+        <RoomList onRoomSelect={toggleSidebar} />
+        <UserList users={users} onUserSelect={toggleSidebar} />
       </div>
 
-      {/* These are for the desktop view only */}
       <div className="desktop-sidebar-left">
         <RoomList />
       </div>
