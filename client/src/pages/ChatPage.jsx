@@ -17,29 +17,39 @@ const ChatPage = () => {
 
   return (
     <>
-      <HamburgerMenu onClick={toggleSidebar} />
-      
-      <div className="chat-area">
-        <div className="chat-header">
-          <h2>Current Room: {currentRoom}</h2>
-          <button onClick={logout} className="logout-btn">Logout</button>
+      <div className="app-layout">
+        <HamburgerMenu onClick={toggleSidebar} />
+
+        {/* --- Sidebar for both mobile and desktop --- */}
+        <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+          <div className="sidebar-header">
+            <h3>Channels</h3>
+            <button onClick={toggleSidebar} className="close-sidebar-btn">&times;</button>
+          </div>
+          <RoomList onRoomSelect={isSidebarOpen ? toggleSidebar : undefined} />
         </div>
-        <MessageList messages={messages} />
-        <TypingIndicator typingUsers={typingUsers} />
-        <MessageInput onSendMessage={sendMessage} onTyping={setTyping} />
-      </div>
-
-      <div className={`mobile-sidebar ${isSidebarOpen ? 'open' : ''}`}>
-        <button onClick={toggleSidebar} className="close-sidebar-btn">&times;</button>
-        <RoomList onRoomSelect={toggleSidebar} />
-        <UserList users={users} onUserSelect={toggleSidebar} />
-      </div>
-
-      <div className="desktop-sidebar-left">
-        <RoomList />
-      </div>
-      <div className="desktop-sidebar-right">
-        <UserList users={users} />
+        
+        {/* --- Main Chat Area --- */}
+        <div className="chat-container">
+          <header className="chat-header">
+            <div className="room-info">
+              <h2>#{currentRoom}</h2>
+              <p>{users.length} members online</p>
+            </div>
+            <button onClick={logout} className="logout-btn">Logout</button>
+          </header>
+          
+          <div className="chat-main">
+            <div className="chat-content">
+              <MessageList messages={messages} />
+              <TypingIndicator typingUsers={typingUsers} />
+              <MessageInput onSendMessage={sendMessage} onTyping={setTyping} />
+            </div>
+            <div className="chat-user-list">
+              <UserList users={users} />
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
