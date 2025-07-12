@@ -11,8 +11,11 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
+// --- HARDCODED URL FOR TESTING ---
+const allowedOrigin = 'https://week-5-web-sockets-assignment-prevy.vercel.app';
+
 const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: allowedOrigin,
   methods: ['GET', 'POST'],
 };
 
@@ -23,8 +26,6 @@ const io = new Server(server, {
 });
 
 app.use(express.json());
-
-// Use the auth routes
 app.use('/api/auth', authRoutes);
 
 configureSocket(io);
