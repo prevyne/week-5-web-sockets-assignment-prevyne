@@ -13,7 +13,8 @@ export const SocketProvider = ({ children }) => {
   const [typingUsers, setTypingUsers] = useState([]);
   const [currentRoom, setCurrentRoom] = useState('General');
 
-  const API_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+  // Use the production URL for both API calls and Socket connections
+  const API_URL = 'https://week-5-web-sockets-assignment-prevyne.onrender.com';
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -32,23 +33,11 @@ export const SocketProvider = ({ children }) => {
     };
     
     const onReceiveMessage = (msg) => {
-      if (msg.senderId !== socket.id) {
-        socket.emit('message_read', { messageId: msg.id, senderId: msg.senderId });
-      }
       setMessages((prev) => [...prev, { ...msg, type: 'chat' }]);
     };
 
     const onSystemMessage = (msg) => {
       setMessages((prev) => [...prev, { id: Date.now(), message: msg, type: 'system' }]);
-    };
-
-    // --- THIS IS THE CORRECTED PART ---
-    const onStatusUpdate = ({ messageId, status }) => {
-      setMessages((prevMessages) =>
-        prevMessages.map((msg) =>
-          msg.id === messageId ? { ...msg, status } : msg
-        )
-      );
     };
 
     const onUserList = (userList) => setUsers(userList);
@@ -59,7 +48,6 @@ export const SocketProvider = ({ children }) => {
     socket.on('connect_error', onConnectError);
     socket.on('receive_message', onReceiveMessage);
     socket.on('system_message', onSystemMessage);
-    socket.on('message_status_update', onStatusUpdate); // Listener re-added
     socket.on('user_list', onUserList);
     socket.on('typing_users', onTyping);
 
@@ -69,7 +57,6 @@ export const SocketProvider = ({ children }) => {
       socket.off('connect_error', onConnectError);
       socket.off('receive_message', onReceiveMessage);
       socket.off('system_message', onSystemMessage);
-      socket.off('message_status_update', onStatusUpdate); // Cleanup re-added
       socket.off('user_list', onUserList);
       socket.off('typing_users', onTyping);
     };
