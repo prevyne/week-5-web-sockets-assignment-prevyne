@@ -3,7 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const authRoutes = require('./routes/authRoutes'); // Import auth routes
+const authRoutes = require('./routes/authRoutes');
 const configureSocket = require('./socket/socketHandler');
 
 dotenv.config();
@@ -11,15 +11,18 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
+const corsOptions = {
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  methods: ['GET', 'POST'],
+};
+
+app.use(cors(corsOptions));
+
 const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST'],
-  },
+  cors: corsOptions,
 });
 
-app.use(cors());
-app.use(express.json()); // Middleware to parse JSON bodies
+app.use(express.json());
 
 // Use the auth routes
 app.use('/api/auth', authRoutes);
